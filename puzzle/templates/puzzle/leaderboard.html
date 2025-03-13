@@ -1,0 +1,27 @@
+{% extends 'puzzle/base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1>Leaderboard</h1>
+    <div class="table-responsive">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Rank</th>
+                    <th>User</th>
+                    <th>Points</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for profile in top_users %}
+                    <tr>
+                        <td>{{ forloop.counter }}</td>
+                        <td>{{ profile.user.username }}</td>
+                        <td>{{ profile.total_points }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

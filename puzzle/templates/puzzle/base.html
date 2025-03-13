@@ -1,0 +1,222 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}PyPuzzle{% endblock %}</title>
+    
+    <!-- Dark Theme Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-dark-5@1.1.3/dist/css/bootstrap-nightshade.min.css" rel="stylesheet">
+    
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;700&family=MedievalSharp&display=swap" rel="stylesheet">
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    
+    <style>
+        :root {
+            --rpg-gold: #daa520;
+            --rpg-red: #8b0000;
+            --rpg-slate: #1a1a1a;
+            --rpg-light: #e0e0e0;
+        }
+
+        body {
+            background: #0a0a0a;
+            color: var(--rpg-light);
+            font-family: 'Space Grotesk', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .navbar {
+            background-color: var(--rpg-slate);
+            border-bottom: 1px solid rgba(218, 165, 32, 0.2);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .navbar-brand {
+            font-family: 'MedievalSharp', cursive;
+            font-size: 2rem;
+            color: var(--rpg-gold) !important;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        .nav-link {
+            color: var(--rpg-light) !important;
+            transition: color 0.2s ease, transform 0.2s ease;
+        }
+
+        .nav-link:hover {
+            color: var(--rpg-gold) !important;
+            transform: translateY(-2px);
+        }
+
+        .nav-link.active {
+            color: var(--rpg-gold) !important;
+            font-weight: bold;
+            border-bottom: 2px solid var(--rpg-gold);
+        }
+
+        .navbar-toggler {
+            border-color: var(--rpg-gold);
+        }
+
+        .navbar-toggler-icon {
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba(218, 165, 32, 0.8)' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
+        }
+
+        .alert {
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+            border: 1px solid;
+        }
+
+        .alert-success {
+            border-color: #2e7d32;
+            background-color: rgba(46, 125, 50, 0.1);
+        }
+
+        .alert-warning {
+            border-color: var(--rpg-gold);
+            background-color: rgba(218, 165, 32, 0.1);
+        }
+
+        .alert-danger {
+            border-color: var(--rpg-red);
+            background-color: rgba(139, 0, 0, 0.1);
+        }
+
+        footer {
+            background-color: var(--rpg-slate);
+            border-top: 1px solid rgba(218, 165, 32, 0.2);
+            color: var(--rpg-light);
+        }
+
+        footer a {
+            color: var(--rpg-gold);
+            text-decoration: none;
+            transition: color 0.2s ease;
+        }
+
+        footer a:hover {
+            color: #ffca28;
+        }
+    </style>
+    {% block extrastyle %}{% endblock %}
+</head>
+<body class="d-flex flex-column min-vh-100">
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg shadow-sm">
+        <div class="container">
+            <a class="navbar-brand" href="{% url 'puzzle:index' %}">PyPuzzle</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav" 
+                    aria-controls="mainNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            
+            <div class="collapse navbar-collapse" id="mainNav">
+                <ul class="navbar-nav ms-auto align-items-center">
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'index' %}active{% endif %}" 
+                           href="{% url 'puzzle:index' %}">
+                            <i class="bi bi-house-door me-1"></i> Home
+                        </a>
+                    </li>
+                    {% if user.is_authenticated %}
+                        <li class="nav-item">
+                            <span class="nav-link text-warning">
+                                <i class="bi bi-person-circle me-1"></i> {{ user.username }}
+                            </span>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.resolver_match.url_name == 'leaderboard' %}active{% endif %}" 
+                               href="{% url 'puzzle:leaderboard' %}">
+                                <i class="bi bi-trophy me-1"></i> Leaderboard
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.resolver_match.url_name == 'profile' %}active{% endif %}" 
+                               href="{% url 'puzzle:profile' %}">
+                                <i class="bi bi-person-circle me-1"></i> Profile
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <form method="post" action="{% url 'puzzle:logout' %}" class="d-inline">
+                                {% csrf_token %}
+                                <button type="submit" class="nav-link border-0 bg-transparent">
+                                    <i class="bi bi-door-closed me-1"></i> Logout
+                                </button>
+                            </form>
+                        </li>
+                    {% else %}
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.resolver_match.url_name == 'login' %}active{% endif %}" 
+                               href="{% url 'puzzle:login' %}">
+                                <i class="bi bi-box-arrow-in-right me-1"></i> Login
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.resolver_match.url_name == 'signup' %}active{% endif %}" 
+                               href="{% url 'puzzle:signup' %}">
+                                <i class="bi bi-person-plus me-1"></i> Register
+                            </a>
+                        </li>
+                    {% endif %}
+                    <!-- Optional Theme Toggle (placeholder) -->
+                    <li class="nav-item">
+                        <button class="btn btn-link nav-link" id="themeToggle" title="Toggle Theme">
+                            <i class="bi bi-moon-stars-fill"></i>
+                        </button>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="flex-grow-1 py-4">
+        <div class="container">
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            {% block content %}{% endblock %}
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="text-center py-3 mt-auto">
+        <div class="container">
+            <p class="mb-0">
+                <i class="bi bi-code-square me-1"></i>
+                © {% now "Y" %} <a href="{% url 'puzzle:index' %}">PyPuzzle</a> - Master Python Challenges
+                | Crafted with <i class="bi bi-heart-fill text-danger"></i> by Puzzle Enthusiasts
+            </p>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Optional Theme Toggle Script (placeholder) -->
+    <script>
+        document.getElementById('themeToggle').addEventListener('click', function() {
+            // Placeholder for theme toggle logic
+            console.log('Theme toggle clicked - implement light/dark mode here');
+        });
+    </script>
+    {% block extra_scripts %}{% endblock %}
+</body>
+</html>

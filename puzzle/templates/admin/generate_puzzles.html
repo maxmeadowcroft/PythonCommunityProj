@@ -1,0 +1,101 @@
+{% extends "admin/base_admin.html" %}
+{% load static %}
+
+{% block extrastyle %}
+{{ block.super }}
+<style>
+    .puzzle-management {
+        max-width: 1400px;
+        margin: 2rem auto;
+        padding: 0 1.5rem;
+    }
+    .action-header {
+        background: var(--ai-dark);
+        border-radius: 12px;
+        padding: 2rem;
+        box-shadow: 0 4px 20px var(--ai-shadow);
+        border: 1px solid rgba(0, 212, 255, 0.1);
+    }
+    .form-group {
+        margin-bottom: 1rem;
+    }
+    .form-control, .form-select {
+        background: var(--ai-black);
+        color: var(--ai-secondary);
+        border-color: rgba(0, 212, 255, 0.2);
+    }
+    .form-control:focus, .form-select:focus {
+        border-color: var(--ai-neon);
+        box-shadow: 0 0 5px var(--ai-shadow);
+    }
+    #message-container {
+        min-height: 60px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="puzzle-management">
+    <div class="action-header">
+        <h1 class="h3 mb-4 text-light animate-glow">
+            <i class="bi bi-puzzle me-2"></i>Generate Puzzles
+        </h1>
+
+        <div id="message-container">
+            {% if success %}
+                <div class="alert alert-success shadow-sm">
+                    <i class="bi bi-check-circle-fill me-2"></i>{{ success }}
+                </div>
+            {% endif %}
+            {% if error %}
+                <div class="alert alert-danger shadow-sm">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>{{ error }}
+                </div>
+            {% endif %}
+        </div>
+
+        <form id="generate-form" method="post" class="mt-4">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="num_puzzles" class="text-muted">Number of Puzzles:</label>
+                <input type="number" class="form-control" id="num_puzzles" name="num_puzzles" value="15" min="1" max="50" required>
+            </div>
+            <div class="form-group" id="category-group">
+                <label for="category" class="text-muted">Category:</label>
+                <select class="form-select" id="category" name="category" required>
+                    <option value="PY">Python</option>
+                    <option value="AI">AI/ML</option>
+                    <option value="DS">Data Science</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="level" class="text-muted">Level:</label>
+                <select class="form-select" id="level" name="level" required>
+                    <option value="beginner">Beginner (MCQs)</option>
+                    <option value="intermediate">Intermediate (Python Coding)</option>
+                    <option value="expert">Expert (Python Coding)</option>
+                </select>
+            </div>
+            <p class="text-muted mb-4" id="form-description">
+                Generate puzzles: Beginner MCQs for selected category; Intermediate/Expert Python coding puzzles (category ignored).
+            </p>
+            <button type="submit" class="btn btn-outline-neon" id="generate-btn">
+                <i class="bi bi-magic me-2"></i>Generate Puzzles
+            </button>
+            <a href="{% url 'custom_admin:manage-puzzles' %}" class="btn btn-secondary ms-2">
+                <i class="bi bi-eye me-2"></i>View Puzzles
+            </a>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+{{ block.super }}
+<script>
+    document.getElementById('generate-form').addEventListener('submit', function(event) {
+        const messageContainer = document.getElementById('message-container');
+        messageContainer.innerHTML = ''; // Clear previous messages
+    });
+</script>
+{% endblock %}

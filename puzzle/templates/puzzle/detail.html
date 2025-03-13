@@ -1,0 +1,148 @@
+{% extends 'puzzle/base.html' %}
+
+{% block title %}{{ puzzle.title }}{% endblock %}
+
+{% block extrastyle %}
+<style>
+    .card {
+        background-color: var(--rpg-slate);
+        border: 1px solid rgba(218, 165, 32, 0.2);
+        color: var(--rpg-light);
+    }
+    .card-title {
+        color: var(--rpg-gold);
+    }
+    .card-text {
+        color: var(--rpg-light);
+    }
+    .badge {
+        font-size: 0.9rem;
+    }
+    .test-cases pre {
+        background-color: #2a2a2a;
+        color: #e0e0e0;
+        padding: 1rem;
+        border-radius: 0.25rem;
+        font-size: 0.9rem;
+    }
+    .btn-primary {
+        background-color: var(--rpg-gold);
+        border-color: var(--rpg-gold);
+        color: #000;
+    }
+    .btn-primary:hover {
+        background-color: rgba(218, 165, 32, 0.8);
+    }
+    .btn-secondary {
+        border-color: var(--rpg-gold);
+        color: var(--rpg-gold);
+    }
+    .btn-secondary:hover {
+        background-color: rgba(218, 165, 32, 0.2);
+        color: #000;
+    }
+    .submission-history pre {
+        background-color: #2a2a2a;
+        color: #e0e0e0;
+        padding: 0.5rem;
+        border-radius: 0.25rem;
+        font-size: 0.85rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1 class="mb-4" style="color: var(--rpg-gold);">{{ puzzle.title }} <small class="text-muted">({{ type_display }})</small></h1>
+    
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} mb-3">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card mb-4 shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">Description</h5>
+                    <p class="card-text">{{ puzzle.description }}</p>
+                    <div class="d-flex justify-content-between flex-wrap mb-3">
+                        <p class="text-muted mb-0">
+                            Level: <span class="badge bg-{% if puzzle.level == 'beginner' %}success{% elif puzzle.level == 'intermediate' %}warning{% else %}danger{% endif %}">
+                                {{ puzzle.level_display }}
+                            </span>
+                        </p>
+                        <p class="text-muted mb-0">
+                            Category: <span class="badge bg-primary">{{ puzzle.category_display }}</span>
+                        </p>
+                        <p class="text-muted mb-0">
+                            Points: <span class="badge bg-dark">{{ puzzle.points }}</span>
+                        </p>
+                    </div>
+                    {% if puzzle.puzzle_type == 'mcq' %}
+                        <h6 class="mt-3">Options:</h6>
+                        <ul class="list-unstyled">
+                            {% for key, value in puzzle.test_cases.items %}
+                                <li><strong>{{ key }}:</strong> {{ value }}</li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <h6 class="mt-3">Test Cases:</h6>
+                        <div class="test-cases">
+                            <pre>{{ puzzle.test_cases|json_script:"test_cases"|safe }}</pre>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">Submission Status</h5>
+                    {% if is_solved %}
+                        <div class="alert alert-success">
+                            <i class="bi bi-check-circle-fill me-2"></i>You've already solved this puzzle!
+                        </div>
+                    {% elif submission %}
+                        <div class="alert alert-warning submission-history">
+                            <i class="bi bi-exclamation-circle-fill me-2"></i>
+                            Your previous submission:
+                            {% if puzzle.puzzle_type == 'mcq' %}
+                                <strong>{{ submission.answer }}</strong>
+                                {% if submission.is_correct %}
+                                    <span class="text-success ms-2"><i class="bi bi-check-circle"></i> Correct</span>
+                                {% else %}
+                                    <span class="text-danger ms-2"><i class="bi bi-x-circle"></i> Incorrect</span>
+                                {% endif %}
+                            {% else %}
+                                <pre>{{ submission.code }}</pre>
+                                {% if submission.is_correct %}
+                                    <span class="text-success"><i class="bi bi-check-circle"></i> Correct</span>
+                                {% else %}
+                                    <span class="text-danger"><i class="bi bi-x-circle"></i> Incorrect</span>
+                                    {% if submission.feedback %}
+                                        <p class="mt-2">Feedback: {{ submission.feedback }}</p>
+                                    {% endif %}
+                                {% endif %}
+                            {% endif %}
+                        </div>
+                    {% else %}
+                        <p class="text-muted">You haven't submitted a solution yet.</p>
+                    {% endif %}
+                    <div class="mt-3">
+                        <a href="{% url 'puzzle:solve' puzzle.id %}" class="btn btn-primary">
+                            <i class="bi bi-terminal me-2"></i>
+                            {% if submission and not submission.is_correct %}Retry{% else %}Solve{% endif %}
+                        </a>
+                        <a href="{% url 'puzzle:index' %}" class="btn btn-secondary ms-2">
+                            <i class="bi bi-arrow-left me-2"></i>Back to Puzzles
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

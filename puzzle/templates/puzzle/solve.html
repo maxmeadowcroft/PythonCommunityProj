@@ -1,0 +1,157 @@
+{% extends 'puzzle/base.html' %}
+
+{% block title %}{{ puzzle.title }}{% endblock %}
+
+{% block extrastyle %}
+<style>
+    .feedback {
+        margin-top: 1rem;
+        padding: 1rem;
+        background-color: rgba(255, 193, 7, 0.1);
+        border: 1px solid var(--rpg-gold);
+        border-radius: 0.25rem;
+        color: var(--rpg-light);
+    }
+    .test-cases {
+        background-color: #2a2a2a;
+        padding: 1rem;
+        border-radius: 0.25rem;
+        margin-bottom: 1rem;
+        color: var(--rpg-light);
+        font-size: 0.9rem;
+    }
+    .form-group label {
+        color: var(--rpg-light);
+    }
+    .form-control, select, textarea {
+        background-color: var(--rpg-slate);
+        color: var(--rpg-light);
+        border-color: rgba(218, 165, 32, 0.2);
+        border-radius: 0.25rem;
+    }
+    .form-control:focus, select:focus, textarea:focus {
+        border-color: var(--rpg-gold);
+        box-shadow: 0 0 5px rgba(218, 165, 32, 0.5);
+    }
+    .btn-primary {
+        background-color: var(--rpg-gold);
+        border-color: var(--rpg-gold);
+        color: #000;
+        transition: background-color 0.2s ease;
+    }
+    .btn-primary:hover {
+        background-color: rgba(218, 165, 32, 0.8);
+    }
+    .btn-secondary {
+        border-color: var(--rpg-gold);
+        color: var(--rpg-gold);
+        transition: background-color 0.2s ease;
+    }
+    .btn-secondary:hover {
+        background-color: rgba(218, 165, 32, 0.2);
+        color: #000;
+    }
+    .card {
+        background-color: var(--rpg-slate);
+        border: 1px solid rgba(218, 165, 32, 0.2);
+    }
+    .card-title {
+        color: var(--rpg-gold);
+    }
+    .card-text {
+        color: var(--rpg-light);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1 class="mb-4" style="color: var(--rpg-gold);">{{ puzzle.title }} <small class="text-muted">({{ type_display }})</small></h1>
+    
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5 class="card-title">Description</h5>
+            <p class="card-text">{{ puzzle.description }}</p>
+
+            {% if puzzle.test_cases %}
+            <h5 class="mt-3">Test Cases (Reference)</h5>
+            <div class="test-cases">
+                <pre>{{ puzzle.test_cases|json_script:"test-cases"|safe }}</pre>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    {% if messages %}
+    <div class="mb-4">
+        {% for message in messages %}
+        <div class="alert {% if message.tags == 'success' %}alert-success{% elif message.tags == 'warning' %}alert-warning{% else %}alert-danger{% endif %}" role="alert">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if submission and not submission.is_correct %}
+    <div class="feedback">
+        <h5>Feedback</h5>
+        <p>
+            {% if puzzle.puzzle_type == 'mcq' %}
+                Your answer: <strong>{{ submission.answer }}</strong> was incorrect.
+                {% if submission.feedback %}
+                    {{ submission.feedback }}
+                {% else %}
+                    Please try again.
+                {% endif %}
+            {% else %}
+                {% with feedback=submission.feedback|default:'{}'|safe|json_script:"feedback" %}
+                <script type="text/javascript">
+                    const feedback = JSON.parse('{{ feedback|escapejs }}');
+                    const pro = feedback.gemini_pro ? feedback.gemini_pro.feedback : "Error";
+                    const mini = feedback.gemini_mini ? feedback.gemini_mini.feedback : "Error";
+                    document.write(`Gemini Pro: ${pro}<br>Gemini Mini: ${mini}`);
+                </script>
+                {% endwith %}
+            {% endif %}
+        </p>
+    </div>
+    {% endif %}
+
+    <div class="card">
+        <div class="card-body">
+            <h5 class="card-title">Submit Your Solution</h5>
+            {% if is_solved %}
+                <div class="alert alert-success">
+                    <i class="bi bi-check-circle-fill me-2"></i>You've already solved this puzzle!
+                </div>
+                <a href="{% url 'puzzle:detail' puzzle.id %}" class="btn btn-secondary">Back to Details</a>
+            {% else %}
+                <form method="post" action="{% url 'puzzle:solve' puzzle.id %}">
+                    {% csrf_token %}
+                    {% if puzzle.puzzle_type == 'mcq' %}
+                    <div class="form-group">
+                        {{ form.answer.label_tag }}
+                        {{ form.answer }}
+                        {% if form.answer.errors %}
+                        <div class="text-danger">{{ form.answer.errors }}</div>
+                        {% endif %}
+                    </div>
+                    {% else %}
+                    <div class="form-group">
+                        <label for="id_code">Your Code</label>
+                        {{ form.code }}
+                        {% if form.code.errors %}
+                        <div class="text-danger">{{ form.code.errors }}</div>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                    <div class="mt-3">
+                        <button type="submit" class="btn btn-primary">Submit</button>
+                        <a href="{% url 'puzzle:detail' puzzle.id %}" class="btn btn-secondary ms-2">Back to Details</a>
+                    </div>
+                </form>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
